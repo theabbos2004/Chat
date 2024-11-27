@@ -25,6 +25,9 @@ const AuthProvider = ({ children }) => {
   const { mutateAsync: getChat } = useGetChat();
   const [notification, setNotification] = useState();
   const { chats } = useSelector((store) => store?.chatStore);
+
+  if(getCurrentAccount?.error?.code === 401) navigate("/auth")
+    
   const getChatFunc = useCallback(
     async (chatId, chats) => {
       const chatsRes = chats?.filter((chat) => chat?.active && chat);
@@ -41,10 +44,7 @@ const AuthProvider = ({ children }) => {
       if (useGetUserRes.data)
         dispatch(userReducer(useGetUserRes?.data?.documents[0]));
     }
-    else if(getCurrentAccount?.error?.code === 401){
-      navigate("/auth");
-    }
-  }, [getCurrentAccount, getUser, dispatch,navigate]);
+  }, [getCurrentAccount, getUser, dispatch]);
 
   useEffect(() => {
     const handleOnline = () => navigate("/");
@@ -109,7 +109,7 @@ const AuthProvider = ({ children }) => {
   return (
     <MainContext.Provider value={value}>
       <div
-        className={`position-absolute z-3 text-dark ${
+        className={`position-absolute text-dark ${
           notification ? "alert" : "hidden"
         } ${
           notification?.type === "error"
@@ -118,7 +118,7 @@ const AuthProvider = ({ children }) => {
             ? "alert-success"
             : ""
         }`}
-        style={{ top: "1rem", left: "1rem" }}
+        style={{zIndex:100, top: "1rem", left: "1rem" }}
         role="alert"
       >
         {notification?.desc}
