@@ -14,7 +14,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { userReducer } from "../Reducer/authReducer";
 import { appwriteConfig, client } from "../lib/apprwite/config";
-import { setChatRr } from "../Reducer/ChatReducer";
+import { setChatRr, setChatsRr } from "../Reducer/ChatReducer";
 const MainContext = createContext();
 const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
@@ -26,7 +26,6 @@ const AuthProvider = ({ children }) => {
   const [notification, setNotification] = useState();
   const { chats } = useSelector((store) => store?.chatStore);
 
-  if(getCurrentAccount?.error?.code === 401) navigate("/auth")
     
   const getChatFunc = useCallback(
     async (chatId, chats) => {
@@ -35,16 +34,19 @@ const AuthProvider = ({ children }) => {
       if (getChatRes.data) dispatch(setChatRr(getChatRes.data));
     },
     [getChat, dispatch]
-  );
+  );  
   const getUserFunc = useCallback(async () => {
-    if (getCurrentAccount?.data) {
+    if(getCurrentAccount?.error?.code === 401) {
+      navigate("/auth")
+    }
+    else if (getCurrentAccount?.data) {
       const useGetUserRes = await getUser({
         userId: getCurrentAccount?.data?.$id,
       });
       if (useGetUserRes.data)
         dispatch(userReducer(useGetUserRes?.data?.documents[0]));
     }
-  }, [getCurrentAccount, getUser, dispatch]);
+  }, [getCurrentAccount, getUser, dispatch,navigate]);
 
   useEffect(() => {
     const handleOnline = () => navigate("/");
@@ -60,33 +62,40 @@ const AuthProvider = ({ children }) => {
   }, [navigate]);
 
   useEffect(() => {
-    getUserFunc();
-    const unSubscribe = client.subscribe(
-      [
-        `databases.${appwriteConfig.databaseId}.collections.${appwriteConfig.userCollectionId}.documents`,
-        `databases.${appwriteConfig.databaseId}.collections.${appwriteConfig.chatCollectionId}.documents`,
-      ],
-      () => {
-        getUserFunc();
-      }
-    );
-    return () => unSubscribe();
-  }, [getUserFunc]);
+    if(getCurrentAccount?.data){
+      getUserFunc();
+      const unSubscribe = client.subscribe(
+        [
+          `databases.${appwriteConfig.databaseId}.collections.${appwriteConfig.userCollectionId}.documents`,
+          `databases.${appwriteConfig.databaseId}.collections.${appwriteConfig.chatCollectionId}.documents`,
+        ],
+        () => {
+          getUserFunc();
+        }
+      );
+      return () => unSubscribe();
+    }
+    else{
+      dispatch(userReducer({}));
+      dispatch(setChatsRr([]));
+    }
+  }, [getUserFunc,getCurrentAccount,dispatch]);
 
   useEffect(() => {
-    if (chats) {
+    if (chats && getCurrentAccount?.data) {
       getChatFunc(null, chats);
       const unSubscribeMessage = client.subscribe(
         [
           `databases.${appwriteConfig.databaseId}.collections.${appwriteConfig.messageCollectionId}.documents`,
         ],
         (e) => {
+          console.log("render subs");
           getChatFunc(e?.payload?.chat?.$id, chats);
         }
       );
       return () => unSubscribeMessage();
     }
-  }, [chats, getChatFunc]);
+  }, [chats, getChatFunc,getCurrentAccount]);
 
   useEffect(() => {
     var time = 0;

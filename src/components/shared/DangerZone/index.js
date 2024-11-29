@@ -2,10 +2,13 @@ import React, { memo } from "react";
 import { useLogOut } from "../../../lib/react-query/queries";
 import { useMainContext } from "../../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { userReducer } from "../../../Reducer/authReducer";
 
 const DangerZone = () => {
   const { mutateAsync: logOut } = useLogOut();
   const { setNotification } = useMainContext();
+  const dispatch=useDispatch()
   const navigate=useNavigate()
   const logOutFunc = async () => {
     try {
@@ -13,6 +16,7 @@ const DangerZone = () => {
       if (logOutRes?.error) {
         throw new Error(logOutRes?.error);
       }
+      dispatch(userReducer({}))
       setNotification({ type: "success", desc: `success` });
       navigate("/auth")
     } catch (error) {
