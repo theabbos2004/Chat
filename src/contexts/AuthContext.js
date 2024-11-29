@@ -38,6 +38,8 @@ const AuthProvider = ({ children }) => {
   const getUserFunc = useCallback(async () => {
     if(getCurrentAccount?.error?.code === 401) {
       navigate("/auth")
+      dispatch(userReducer({}));
+      dispatch(setChatsRr([]));
     }
     else if (getCurrentAccount?.data) {
       const useGetUserRes = await getUser({
@@ -46,7 +48,7 @@ const AuthProvider = ({ children }) => {
       if (useGetUserRes.data)
         dispatch(userReducer(useGetUserRes?.data?.documents[0]));
     }
-  }, [getCurrentAccount, getUser, dispatch,navigate]);
+  }, [getCurrentAccount, getUser, dispatch]);
 
   useEffect(() => {
     const handleOnline = () => navigate("/");
@@ -62,7 +64,6 @@ const AuthProvider = ({ children }) => {
   }, [navigate]);
 
   useEffect(() => {
-    if(getCurrentAccount?.data){
       getUserFunc();
       const unSubscribe = client.subscribe(
         [
@@ -74,11 +75,6 @@ const AuthProvider = ({ children }) => {
         }
       );
       return () => unSubscribe();
-    }
-    else{
-      dispatch(userReducer({}));
-      dispatch(setChatsRr([]));
-    }
   }, [getUserFunc,getCurrentAccount,dispatch]);
 
   useEffect(() => {
