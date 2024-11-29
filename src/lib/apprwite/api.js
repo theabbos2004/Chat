@@ -1,5 +1,5 @@
-import { Query } from "appwrite";
-import { account, appwriteConfig, database, ID } from "./config";
+import { Query ,ID} from "appwrite";
+import { account, appwriteConfig, database } from "./config";
 // ======================= account
 export async function getCurrentAccount() {
   try {

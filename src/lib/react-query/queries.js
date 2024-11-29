@@ -37,8 +37,15 @@ export const useGetUsers=()=>{
     })
 }
 export const useLogin=()=>{
+    const queryClient = useQueryClient();
     return useMutation({
-        mutationFn:({email,password})=>login({email,password})})
+        mutationFn:({email,password})=>login({email,password}),
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({
+              queryKey: ["getCurrentAccount"],
+            })
+          },
+    })
 }
 
 export const useSignOut=()=>{

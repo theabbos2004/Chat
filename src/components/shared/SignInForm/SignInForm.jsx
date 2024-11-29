@@ -39,7 +39,7 @@ const SignInForm = ({ setIsSignUp }) => {
   }
   return (
     <Formik
-      initialValues={{email: "john@gmail.com", password: "aaaaaaaa" }}
+      initialValues={{email: "azam@gmail.com", password: "aaaaaaaa" }}
       validate={validate}
       onSubmit={onSubmit}
     >
